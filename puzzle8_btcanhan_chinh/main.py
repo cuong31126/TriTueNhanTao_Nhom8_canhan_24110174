@@ -67,6 +67,12 @@ def handle_button(action, vis):
         vis.set_mode(18)
     elif action == "tab_minconflict":
         vis.set_mode(19)
+    elif action == "tab_andor":
+        vis.set_mode(20)
+    elif action == "tab_backtracking":
+        vis.set_mode(21)
+    elif action == "tab_forward":
+        vis.set_mode(22)
 
     # Cac nut mode rieng cua BFS/DFS.
     elif action == "mode1":

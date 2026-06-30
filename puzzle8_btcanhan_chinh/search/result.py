@@ -41,6 +41,12 @@ class ResultMixin:
             return "AC-3 mode with constraint propagation"
         if self.mode == 19:
             return "Min-Conflicts local search plan"
+        if self.mode == 20:
+            return "AND-OR conditional plan"
+        if self.mode == 21:
+            return "recursive backtracking"
+        if self.mode == 22:
+            return "forward checking with pruning"
         return "unknown"
 
     def _store_result(self):

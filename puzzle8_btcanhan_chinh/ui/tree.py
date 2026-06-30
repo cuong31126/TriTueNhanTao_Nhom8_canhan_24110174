@@ -127,6 +127,8 @@ def draw_frontier(surface, vis, fonts, x0, y0):
         frontier_name = "HILL CLIMBING NEXT STATE"
     elif vis.mode == 13:
         frontier_name = "LOCAL BEAM STATES"
+    elif vis.mode in (14, 15, 16, 17, 18, 19, 20, 21, 22):
+        frontier_name = "REPLAY PLAN STATES"
     else:
         frontier_name = "FRONTIER / STACK"
     draw_text(surface, frontier_name, x0, y0 - 28, title_font, TEXT)
@@ -158,6 +160,10 @@ def draw_frontier(surface, vis, fonts, x0, y0):
                 state, path = vis.queue[i]
                 h_cost = manhattan_distance(state, vis.goal, vis.goal_pos)
                 shown.append((state, path, "h=" + str(int(h_cost))))
+        elif vis.mode in (14, 15, 16, 17, 18, 19, 20, 21, 22):
+            for i in range(min(max_show, q_len)):
+                state, path = vis.queue[i]
+                shown.append((state, path, "replay"))
         else:
             for i in range(min(max_show, q_len)):
                 shown.append(vis.queue[q_len - 1 - i])
@@ -171,6 +177,8 @@ def draw_frontier(surface, vis, fonts, x0, y0):
             empty_text = "No next state"
         elif vis.mode == 13:
             empty_text = "Beam is empty"
+        elif vis.mode in (14, 15, 16, 17, 18, 19, 20, 21, 22):
+            empty_text = "Replay plan is empty"
         else:
             empty_text = "Stack is empty"
         draw_text(surface, empty_text, x0, y0 + 35, fonts["small"], MUTED)
@@ -190,7 +198,7 @@ def draw_frontier(surface, vis, fonts, x0, y0):
     for i, item in enumerate(shown):
         if vis.mode in (5, 6, 7):
             draw_frontier_item(i, item[0], item[1], extra_text=item[2])
-        elif vis.mode in (9, 10, 11, 12, 13):
+        elif vis.mode in (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22):
             draw_frontier_item(i, item[0], item[1], extra_text=item[2])
         else:
             draw_frontier_item(i, item[0], item[1])

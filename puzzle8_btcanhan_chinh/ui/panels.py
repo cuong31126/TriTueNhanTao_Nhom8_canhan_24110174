@@ -49,10 +49,20 @@ def draw_info_panel(surface, vis, fonts, panel_rect):
         mode_name = "Generated Start/Goal Mode"
     elif vis.mode == 17:
         mode_name = "Simulated Local Search: greedy best-first replay"
+    elif vis.mode == 18:
+        mode_name = "AC-3 Mode: constraint propagation replay"
+    elif vis.mode == 19:
+        mode_name = "Min-Conflicts: local-search replay"
+    elif vis.mode == 20:
+        mode_name = "AND-OR Search: conditional plan replay"
+    elif vis.mode == 21:
+        mode_name = "Backtracking Search: recursive DFS replay"
+    elif vis.mode == 22:
+        mode_name = "Forward Checking: CSP pruning replay"
     else:
         mode_name = "Local Beam Search"
 
-    frontier_label = "Queue size" if vis.mode in (1, 2) else "Stack size" if vis.mode in (3, 4, 8) else "Beam size" if vis.mode == 13 else "Replay states" if vis.mode in (14, 15, 16, 17) else "Next states" if vis.mode in (9, 10, 11, 12) else "PQ size"
+    frontier_label = "Queue size" if vis.mode in (1, 2) else "Stack size" if vis.mode in (3, 4, 8) else "Beam size" if vis.mode == 13 else "Replay states" if vis.mode in (14, 15, 16, 17, 18, 19, 20, 21, 22) else "Next states" if vis.mode in (9, 10, 11, 12) else "PQ size"
     rows = [
         ("Mode", mode_name),
         ("Step", str(vis.step)),
@@ -92,7 +102,7 @@ def draw_info_panel(surface, vis, fonts, panel_rect):
         draw_text(surface, "Beam width:", x, y, fonts["tiny_bold"], MUTED)
         draw_text(surface, str(vis.beam_width), x + 118, y, fonts["tiny"], TEXT)
         y += 18
-    elif vis.mode in (14, 15, 16, 17):
+    elif vis.mode in (14, 15, 16, 17, 18, 19, 20, 21, 22):
         y += 2
         draw_text(surface, "Replay:", x, y, fonts["tiny_bold"], MUTED)
         total = len(getattr(vis, "precomputed_path", []) or [])

@@ -23,6 +23,12 @@ class SpecialModesMixin:
             return "AC-3 Mode"
         if self.mode == 19:
             return "Min-Conflicts Mode"
+        if self.mode == 20:
+            return "AND-OR Search"
+        if self.mode == 21:
+            return "Backtracking Search"
+        if self.mode == 22:
+            return "Forward Checking"
         return "Special Mode"
 
     def _prepare_plan_execution(self, label, request_auto=False, planner="astar"):
@@ -40,6 +46,15 @@ class SpecialModesMixin:
         elif planner == "min_conflicts":
             path = self._min_conflicts_solve()
             planner_text = "Min-Conflicts local search plan"
+        elif planner == "and_or":
+            path = self._and_or_solve()
+            planner_text = "AND-OR conditional search plan"
+        elif planner == "backtracking":
+            path = self._backtracking_solve()
+            planner_text = "backtracking depth-first plan"
+        elif planner == "forward_checking":
+            path = self._forward_checking_solve()
+            planner_text = "forward-checking CSP plan"
         else:
             path = self._astar_solve()
             planner_text = "internal A*"
@@ -328,6 +343,101 @@ class SpecialModesMixin:
                 heapq.heappush(frontier, (child_h, depth + 1, tie, child, child_path))
 
             steps += 1
+        return None
+
+    def _and_or_solve(self):
+        """Build a simple conditional AND-OR plan for deterministic 8-puzzle transitions.
+
+        OR nodes choose a move. AND outcomes represent the intended transition plus
+        a conservative wait/no-change outcome. Because the normal 8-puzzle is
+        deterministic, the executable replay follows the intended branch.
+        """
+        if self.start == self.goal:
+            return []
+
+        max_depth = 36
+        memo = set()
+
+        def or_search(state, depth, path, branch):
+            if state == self.goal:
+                return list(path)
+            if depth >= max_depth:
+                return None
+            key = (state, depth)
+            if key in memo:
+                return None
+            memo.add(key)
+
+            for action in ordered_moves(state, self.goal, self.goal_pos):
+                child = apply_move(state, action)
+                if child in branch:
+                    continue
+
+                # AND node: all modeled outcomes must be acceptable. The no-change
+                # outcome is acceptable because the next replay tick can retry.
+                outcomes = [child, state]
+                if all(outcome == state or outcome not in branch for outcome in outcomes):
+                    result = or_search(child, depth + 1, path + [action], branch | {child})
+                    if result is not None:
+                        self.status = "AND-OR Search: conditional branch selected."
+                        return result
+            return None
+
+        return or_search(self.start, 0, [], {self.start}) or self._astar_solve()
+
+    def _backtracking_solve(self):
+        """Solve the puzzle by recursive backtracking with depth deepening."""
+        if self.start == self.goal:
+            return []
+
+        for depth_limit in range(manhattan_distance(self.start, self.goal, self.goal_pos), 40):
+            result = self._backtrack_limited(self.start, depth_limit, [], {self.start}, forward_check=False)
+            if result is not None:
+                return result
+        return self._astar_solve()
+
+    def _forward_checking_solve(self):
+        """Backtracking plus look-ahead pruning by Manhattan lower bound."""
+        if self.start == self.goal:
+            return []
+
+        for depth_limit in range(manhattan_distance(self.start, self.goal, self.goal_pos), 40):
+            result = self._backtrack_limited(self.start, depth_limit, [], {self.start}, forward_check=True)
+            if result is not None:
+                return result
+        return self._astar_solve()
+
+    def _backtrack_limited(self, state, depth_left, path, seen, forward_check=False):
+        if state == self.goal:
+            return list(path)
+        if depth_left <= 0:
+            return None
+
+        h_cost = manhattan_distance(state, self.goal, self.goal_pos)
+        if h_cost > depth_left:
+            return None
+
+        for action in ordered_moves(state, self.goal, self.goal_pos):
+            child = apply_move(state, action)
+            if child in seen:
+                continue
+
+            if forward_check:
+                child_h = manhattan_distance(child, self.goal, self.goal_pos)
+                if child_h > depth_left - 1:
+                    continue
+                if not is_solvable(child, self.goal):
+                    continue
+
+            result = self._backtrack_limited(
+                child,
+                depth_left - 1,
+                path + [action],
+                seen | {child},
+                forward_check=forward_check,
+            )
+            if result is not None:
+                return result
         return None
 
     # Tinh priority cho A*/Greedy dua tren g_cost va Manhattan h_cost.

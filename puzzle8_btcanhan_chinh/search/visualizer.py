@@ -37,7 +37,7 @@ class SearchVisualizer(
     FRONTIER_PREVIEW_LIMIT = 80
 
     # Cac mode hop le trong chuong trinh.
-    RESULT_MODES = range(1, 20)
+    RESULT_MODES = range(1, 23)
 
     # Cac mode dung heapq/priority queue.
     PRIORITY_MODES = (5, 6, 7)
@@ -113,7 +113,7 @@ class SearchVisualizer(
             self._generate_random_start_goal()
             return
 
-        self.reset_current_mode(request_auto=mode in (14, 15, 17))
+        self.reset_current_mode(request_auto=mode in (14, 15, 17, 18, 19, 20, 21, 22))
 
     def reset_current_mode(self, keep_results=True, request_auto=False):
         """Reset lan chay va khoi tao lai cac du lieu rieng cua mode dac biet."""
@@ -144,6 +144,15 @@ class SearchVisualizer(
         elif self.mode == 19:
             self.hidden_indices = set()
             self._prepare_plan_execution("Min-Conflicts Mode", request_auto=request_auto, planner="min_conflicts")
+        elif self.mode == 20:
+            self.hidden_indices = set()
+            self._prepare_plan_execution("AND-OR Search", request_auto=request_auto, planner="and_or")
+        elif self.mode == 21:
+            self.hidden_indices = set()
+            self._prepare_plan_execution("Backtracking Search", request_auto=request_auto, planner="backtracking")
+        elif self.mode == 22:
+            self.hidden_indices = set()
+            self._prepare_plan_execution("Forward Checking", request_auto=request_auto, planner="forward_checking")
         else:
             self.hidden_indices = set()
             self.precomputed_path = None
@@ -355,7 +364,7 @@ class SearchVisualizer(
             return
 
         # Goi ham xu ly mot buoc theo mode hien tai.
-        if self.mode in (14, 15, 16, 17):
+        if self.mode in (14, 15, 16, 17, 18, 19, 20, 21, 22):
             self._step_plan_execution()
         elif self.mode == 1:
             self._step_mode_1()
